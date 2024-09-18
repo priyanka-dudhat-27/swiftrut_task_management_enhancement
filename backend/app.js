@@ -3,34 +3,41 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const taskRoutes = require('./routes/taskRoutes');
+const taskRoutes = require('./routes/taskRoutes'); // Import task routes
 
 const app = express();
 const server = http.createServer(app);
+
+// Initialize Socket.io
 const io = socketIo(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
+    origin: 'http://localhost:3000', // Adjust to your frontend's address
+    methods: ['GET', 'POST', 'PUT' , 'DELETE'],
   },
 });
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Parse JSON requests
 
-// MongoDB connection
+// MongoDB Connection
 mongoose.connect('mongodb://localhost:27017/taskmanager', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error(err));
+  .catch((err) => console.error('MongoDB connection error:', err));
 
-// Socket.io real-time updates
+// Socket.io Real-Time Updates
 io.on('connection', (socket) => {
   console.log('New client connected');
 
+  // Listen for task updates from clients
   socket.on('task-update', (task) => {
-    io.emit('update-tasks', task); // Send task updates to all clients
+    io.emit('update-tasks', task); // Broadcast to all clients
+  });
+
+  socket.on('add-task', (task) => {
+    io.emit('update-tasks', task); // Emit new task to all clients
   });
 
   socket.on('disconnect', () => {
@@ -38,10 +45,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// Task routes
+// Use task routes for CRUD operations
 app.use('/api/tasks', taskRoutes);
 
 // Start server
-server.listen(5000, () => {
-  console.log('Server running on port 5000');
+const PORT = 5000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

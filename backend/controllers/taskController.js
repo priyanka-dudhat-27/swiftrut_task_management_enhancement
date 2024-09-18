@@ -13,6 +13,10 @@ exports.getTasks = async (req, res) => {
 // Create a new task
 exports.createTask = async (req, res) => {
   const { title, description, assignedTo, dueDate } = req.body;
+  if (!title || !description || !assignedTo || !dueDate) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
   try {
     const task = new Task({ title, description, assignedTo, dueDate });
     await task.save();
@@ -26,8 +30,20 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   const { id } = req.params;
   const { title, description, assignedTo, status, comments } = req.body;
+  
   try {
-    const task = await Task.findByIdAndUpdate(id, { title, description, assignedTo, status, comments }, { new: true });
+    const task = await Task.findByIdAndUpdate(id, { 
+      title, 
+      description, 
+      assignedTo, 
+      status, 
+      comments 
+    }, { new: true });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
     res.status(200).json(task);
   } catch (error) {
     res.status(500).json({ error: 'Error updating task' });

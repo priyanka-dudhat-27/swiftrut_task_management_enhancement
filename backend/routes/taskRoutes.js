@@ -3,8 +3,8 @@ const { getTasks, createTask, updateTask } = require('../controllers/taskControl
 const router = express.Router();
 
 // Task routes
-router.get('/', getTasks);
-router.post('/', createTask);
-router.put('/:id', updateTask);
+router.get('/', getTasks);       // Get all tasks
+router.post('/', createTask);    // Create a new task
+router.put('/:id', updateTask);  // Update an existing task by ID
 
 module.exports = router;
